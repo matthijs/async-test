@@ -82,7 +82,7 @@ async::main co_main(int argc, char **argv) {
   // read the response
   beast::flat_buffer b;
   beast::http::response<beast::http::string_body> response;
-  co_await beast::http::async_read(conn, b, response);
+  co_await beast::http::async_read(conn, b, response, async::use_op);
 
   // write the response
   fmt::print("{}", response.body());
