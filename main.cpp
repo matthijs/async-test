@@ -32,7 +32,7 @@ using acceptor_type = typename boost::asio::ip::tcp::acceptor::rebind_executor<
     executor_type>::other;
 using websocket_type = beast::websocket::stream<ssl_socket_type>;
 
-async::promise<boost::asio::ip::tcp::resolver::results_type>
+/*async::promise<boost::asio::ip::tcp::resolver::results_type>
 resolve(std::string_view host) {
   // Resolve the host
   boost::asio::ip::tcp::resolver resolve{async::this_thread::get_executor()};
@@ -52,11 +52,13 @@ resolve(std::string_view host) {
 
   std::runtime_error e("resolver timed out");
   boost::throw_exception(e);
-}
+}*/
 
 async::promise<ssl_socket_type> connect(std::string_view host,
                                         boost::asio::ssl::context &ctx) {
-  auto endpoints = co_await resolve(host);
+  boost::asio::ip::tcp::resolver resolve{async::this_thread::get_executor()};
+  auto endpoints = co_await resolve.async_resolve(host, "https", async::use_op);
+  //auto endpoints = co_await resolve(host);
 
   // Timer for timeouts
   //boost::asio::system_timer t{async::this_thread::get_executor()};
