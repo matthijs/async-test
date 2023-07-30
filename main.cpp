@@ -59,52 +59,22 @@ async::promise<ssl_socket_type> connect(std::string_view host,
   auto endpoints = co_await resolve(host);
 
   // Timer for timeouts
-  boost::asio::system_timer t{async::this_thread::get_executor()};
+  //boost::asio::system_timer t{async::this_thread::get_executor()};
 
   ssl_socket_type sock{async::this_thread::get_executor(), ctx};
-  bool connected{false};
-  //for (auto &&ep : endpoints) {
-    //t.expires_after(std::chrono::seconds{10});
-    //switch (co_await select(t.async_wait(async::use_op),
-                            co_await sock.next_layer().async_connect(*endpoints.begin());
-    /*case 0:
-      continue;
-      break;
-    case 1:
-    default:
-      connected = true;
-      break;*/
-    //}
-  //}
-
-  /*if (!connected) {
-    std::runtime_error e("could not connect to one of the endpoints");
-    boost::throw_exception(e);
-  }*/
+  //bool connected{false};
+  co_await sock.next_layer().async_connect(*endpoints.begin());
 
   // Connected, now do the handshake
-  fmt::print("connected\n");
-  //t.expires_after(std::chrono::seconds{10});
-  //switch (co_await select(
-  //    t.async_wait(async::use_op),
-      co_await sock.async_handshake(boost::asio::ssl::stream_base::client);
-  /*case 0:
-    break;
-  case 1:
-  default:
-    co_return sock;
-  }*/
-  //std::runtime_error e("ssl handshake timeout occurred");
-  //boost::throw_exception(e);
+  co_await sock.async_handshake(boost::asio::ssl::stream_base::client);
   co_return sock;
 }
 
 async::main co_main(int argc, char **argv) {
   boost::asio::ssl::context ctx{boost::asio::ssl::context::tls_client};
   auto conn = co_await connect("httpbin.org", ctx);
-  fmt::print("handshake done\n");
+  fmt::print("connected\n");
   beast::http::request<beast::http::empty_body> req{beast::http::verb::get, "/get?bla=bla", 11};
-  req.target("/get?bla=bla");
   co_await beast::http::async_write(conn, req, async::use_op);
 
   // read the response
